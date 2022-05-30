@@ -18,6 +18,7 @@ const (
 
 	LET    = "LET"
 	PRINT  = "PRINT"
+	MOD    = "MOD"
 	GOTO   = "GOTO"
 	IF     = "IF"
 	THEN   = "THEN"
@@ -38,7 +39,7 @@ const (
 )
 
 var keywords = func() map[string]Type {
-	vs := []Type{PRINT, LET, GOTO, END, IF, THEN, ELSE, ELSEIF}
+	vs := []Type{END, LET, PRINT, MOD, GOTO, IF, THEN, ELSE, ELSEIF}
 	kws := make(map[string]Type, len(vs))
 	for _, v := range vs {
 		kws[string(v)] = v
