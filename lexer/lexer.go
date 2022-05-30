@@ -20,36 +20,19 @@ func New(input string) Lexer {
 func (l *Lexer) NextToken() token.Token {
 	var t token.Token
 	l.skipWhitespace()
+	tType := token.LookupChr(l.ch)
 
-	switch l.ch {
-	case '=':
-		t = token.Token{Type: token.ASSIGN, Literal: "="}
-	case '+':
-		t = token.Token{Type: token.PLUS, Literal: "+"}
-	case '-':
-		t = token.Token{Type: token.SUBTRACT, Literal: "-"}
-	case '<':
-		t = token.Token{Type: token.LESS, Literal: "<"}
-	case '>':
-		t = token.Token{Type: token.GREATER, Literal: ">"}
-	case ',':
-		t = token.Token{Type: token.COMMA, Literal: ","}
-	case ';':
-		t = token.Token{Type: token.SEMICOLON, Literal: ";"}
-	case '\n':
-		t = token.Token{Type: token.EOL, Literal: "\n"}
-	case 0:
-		t.Type = token.END
-	case '"':
+	switch {
+	case tType != token.Type(""):
+		t = token.Token{Type: tType, Literal: string(l.ch)}
+	case l.ch == '"':
 		t = token.Token{Type: token.STRING, Literal: l.readString()}
+	case isLetter(l.ch):
+		identifier := l.readIdentifier()
+		return token.Token{Type: token.LookupIdent(identifier), Literal: identifier}
+	case isDigit(l.ch):
+		return token.Token{Type: token.INT, Literal: l.readNumber()}
 	default:
-		if isLetter(l.ch) {
-			identifier := l.readIdentifier()
-			return token.Token{Type: token.LookupIdent(identifier), Literal: identifier}
-		}
-		if isDigit(l.ch) {
-			return token.Token{Type: token.INT, Literal: l.readNumber()}
-		}
 		t = token.Token{Type: token.ILLEGAL, Literal: string(l.ch)}
 	}
 	l.readChar()
@@ -88,7 +71,8 @@ func (l *Lexer) skipWhitespace() {
 }
 
 func isLetter(ch byte) bool {
-	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_' || ch == '$'
+	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' ||
+		ch == '_' || ch == '$' || ch == '#' || ch == '!'
 }
 
 func isDigit(ch byte) bool {

@@ -12,6 +12,7 @@ func TestNewToken(t *testing.T) {
 20 PRINT X; ME$; "\n"
 25 LET X = X + 1
 30 GOTO 20
+?%
 `)
 
 	for i, test := range []struct {
@@ -53,6 +54,10 @@ func TestNewToken(t *testing.T) {
 		{token.INT, "30"},
 		{token.GOTO, "GOTO"},
 		{token.INT, "20"},
+		{token.EOL, "\n"},
+
+		{token.ILLEGAL, "?"},
+		{token.ILLEGAL, "%"},
 		{token.EOL, "\n"},
 	} {
 		tk := lexer.NextToken()
