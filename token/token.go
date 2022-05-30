@@ -9,6 +9,7 @@ type Token struct {
 
 const (
 	END     = "END"
+	EOF     = "EOF"
 	ILLEGAL = "ILLEGAL"
 
 	INTID    = "INTID"
@@ -24,37 +25,61 @@ const (
 	THEN   = "THEN"
 	ELSE   = "ELSE"
 	ELSEIF = "ELSEIF"
+	TRUE   = "TRUE"
+	BOOL   = "BOOL"
 
-	EOL = "\n"
+	EQ    = "EQUAL"
+	NOTEQ = "NOT_EQUAL"
+	GTEQ  = "GREATER_THAN_OR_EQUAL"
+	LTEQ  = "LESS_THAN_OR_EQUAL"
 
-	ASSIGN   = "="
-	PLUS     = "+"
-	SUBTRACT = "-"
-	LT       = "<"
-	GT       = ">"
+	EOL      = "EOL"
+	ASSIGN   = "ASSIGN"
+	PLUS     = "PLUS"
+	SUBTRACT = "SUBTRACT"
+	LT       = "LESS_THAN"
+	GT       = "GREATER_THAN"
+	OR       = "OR"
+	AND      = "AND"
+	NOT      = "NOT"
 
-	COMMA     = ","
-	COLON     = ":"
-	SEMICOLON = ";"
+	COMMA     = "COMMA"
+	COLON     = "COLON"
+	SEMICOLON = "SEMICOLON"
 )
 
 var keywords = func() map[string]Type {
 	vs := []Type{END, LET, PRINT, MOD, GOTO, IF, THEN, ELSE, ELSEIF}
-	kws := make(map[string]Type, len(vs))
+	kws := make(map[string]Type, len(vs)+2)
 	for _, v := range vs {
 		kws[string(v)] = v
 	}
+	kws["TRUE"] = BOOL
+	kws["FALSE"] = BOOL
 	return kws
 }()
 
-var singleChr = func() map[string]Type {
-	vs := []Type{EOL, ASSIGN, PLUS, SUBTRACT, LT, GT, COMMA, COLON, SEMICOLON}
-	scs := make(map[string]Type, len(vs))
-	for _, v := range vs {
-		scs[string(v)] = v
-	}
-	return scs
-}()
+var singleChr = map[string]Type{
+	"\n": EOL,
+	"=":  ASSIGN,
+	"+":  PLUS,
+	"-":  SUBTRACT,
+	"<":  LT,
+	">":  GT,
+	"|":  OR,
+	"&":  AND,
+	"!":  NOT,
+	",":  COMMA,
+	":":  COLON,
+	";":  SEMICOLON,
+}
+
+var dualChr = map[string]Type{
+	"==": EQ,
+	"<>": NOTEQ,
+	">=": GTEQ,
+	"<=": LTEQ,
+}
 
 func LookupChr(chr byte) Type {
 	if chr == 0 {
@@ -64,6 +89,14 @@ func LookupChr(chr byte) Type {
 		return tokenType
 	}
 	return Type("")
+}
+
+func LookupDualChr(first byte, sec byte) (Type, string) {
+	lit := string([]byte{first, sec})
+	if tokenType, exists := dualChr[lit]; exists {
+		return tokenType, lit
+	}
+	return Type(""), ""
 }
 
 func LookupIdent(ident string) Type {

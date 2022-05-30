@@ -20,9 +20,17 @@ func New(input string) Lexer {
 func (l *Lexer) NextToken() token.Token {
 	var t token.Token
 	l.skipWhitespace()
+
+	if l.ch == 0 {
+		return token.Token{Type: token.EOF}
+	}
+
 	tType := token.LookupChr(l.ch)
 
 	switch {
+	case tType != token.Type("") && isMultiCh(tType, l.peekChar()):
+		t.Type, t.Literal = token.LookupDualChr(l.ch, l.peekChar())
+		l.readChar()
 	case tType != token.Type(""):
 		t = token.Token{Type: tType, Literal: string(l.ch)}
 	case l.ch == '"':
@@ -70,13 +78,12 @@ func (l *Lexer) skipWhitespace() {
 	}
 }
 
-func isLetter(ch byte) bool {
-	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' ||
-		ch == '_' || ch == '$' || ch == '#' || ch == '!'
-}
-
-func isDigit(ch byte) bool {
-	return '0' <= ch && ch <= '9'
+func (l *Lexer) peekChar() byte {
+	if l.readPosition >= len(l.Input) {
+		return 0
+	} else {
+		return l.Input[l.readPosition]
+	}
 }
 
 func (l *Lexer) readChar() {
@@ -86,4 +93,25 @@ func (l *Lexer) readChar() {
 	}
 	l.position = l.readPosition
 	l.readPosition += 1
+}
+
+func isLetter(ch byte) bool {
+	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' ||
+		ch == '_' || ch == '$' || ch == '#' || ch == '!'
+}
+
+func isDigit(ch byte) bool {
+	return '0' <= ch && ch <= '9'
+}
+
+func isMultiCh(first token.Type, sec byte) bool {
+	switch first {
+	case token.LT:
+		return sec == '>' || sec == '='
+	case token.GT:
+		return sec == '='
+	case token.ASSIGN:
+		return sec == '='
+	}
+	return false
 }

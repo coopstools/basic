@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"fmt"
 	"github.com/coopstools/basic/token"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -11,8 +12,8 @@ func TestNewToken(t *testing.T) {
 15 LET X=0
 20 PRINT X; ME$; "\n"
 25 LET X = X + 1
-30 GOTO 20
-?%
+30 IF X <> 10: GOTO 20: END IF
+?% == < <= > >= TRUE FALSE
 `)
 
 	for i, test := range []struct {
@@ -52,16 +53,36 @@ func TestNewToken(t *testing.T) {
 		{token.EOL, "\n"},
 
 		{token.INT, "30"},
+		{token.IF, "IF"},
+		{token.INTID, "X"},
+		{token.NOTEQ, "<>"},
+		{token.INT, "10"},
+		{token.COLON, ":"},
 		{token.GOTO, "GOTO"},
 		{token.INT, "20"},
+		{token.COLON, ":"},
+		{token.END, "END"},
+		{token.IF, "IF"},
 		{token.EOL, "\n"},
 
 		{token.ILLEGAL, "?"},
 		{token.ILLEGAL, "%"},
+		{token.EQ, "=="},
+		{token.LT, "<"},
+		{token.LTEQ, "<="},
+		{token.GT, ">"},
+		{token.GTEQ, ">="},
+		{token.BOOL, "TRUE"},
+		{token.BOOL, "FALSE"},
 		{token.EOL, "\n"},
+		{token.EOF, ""},
 	} {
 		tk := lexer.NextToken()
-		assert.Equal(t, test.Token, tk.Type, "Failed on %d", i)
-		assert.Equal(t, test.Char, tk.Literal, "Failed on %d", i)
+		assert.Equal(t, test.Token, tk.Type)
+		assert.Equal(t, test.Char, tk.Literal)
+		if t.Failed() {
+			fmt.Println("Last character", tk, "at", i)
+			return
+		}
 	}
 }
